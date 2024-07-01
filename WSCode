@@ -19,21 +19,21 @@ chrome_options.add_argument("user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 1
 driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
 driver.get('https://twitter.com/login')
 
-# Datos de acceso
-username = ""
-password = ""
+# Datos de acceso (asegúrate de reemplazar 'your_username' y 'your_password' con tus credenciales de Twitter)
+username = "your_username"
+password = "your_password"
 
 # Iniciar sesión en Twitter
 try:
- 
+    # Introducir el nombre de usuario
     user_input = driver.find_element(By.NAME, "session[username_or_email]")
     user_input.send_keys(username)
     
-   
+    # Introducir la contraseña
     pass_input = driver.find_element(By.NAME, "session[password]")
     pass_input.send_keys(password)
     
-   
+    # Hacer clic en el botón de iniciar sesión
     login_button = driver.find_element(By.XPATH, '//div[@data-testid="LoginForm_Login_Button"]')
     login_button.click()
     
@@ -60,14 +60,15 @@ try:
             except Exception as e:
                 print(f"Error al extraer información del tweet: {e}")
         
-
+        # Desplazarse hacia abajo para cargar más tweets
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         time.sleep(2)  # Esperar un momento para que se carguen más tweets
 
 finally:
     driver.quit()
 
-with open('tweets.csv', mode='w', newline='', encoding='utf-8') as file:
+# Exportar a CSV
+with open('dataset-publicaciones-x.csv', mode='w', newline='', encoding='utf-8') as file:
     writer = csv.writer(file)
     writer.writerow(["dataset"])
     for tweet in tweets_data:
