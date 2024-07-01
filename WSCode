@@ -7,40 +7,67 @@ import csv
 
 from webdriver_manager.chrome import ChromeDriverManager
 
-
+# Configuración de ChromeDriver
 chrome_options = Options()
 chrome_options.add_argument("--disable-extensions")
 chrome_options.add_argument("--disable-gpu")
 chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--headless")
-opts = Options()
-opts.add_argument("user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36")
+chrome_options.add_argument("--disable-dev-shm-usage")
+chrome_options.add_argument("user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36")
 
 driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
 driver.get('https://twitter.com/login')
 
-tweets_data = []
+# Datos de acceso
+username = ""
+password = ""
 
+# Iniciar sesión en Twitter
 try:
-    driver.get('https://twitter.com/login')
-    time.sleep(30)
+ 
+    user_input = driver.find_element(By.NAME, "session[username_or_email]")
+    user_input.send_keys(username)
+    
+   
+    pass_input = driver.find_element(By.NAME, "session[password]")
+    pass_input.send_keys(password)
+    
+   
+    login_button = driver.find_element(By.XPATH, '//div[@data-testid="LoginForm_Login_Button"]')
+    login_button.click()
+    
+    time.sleep(5)  # Esperar a que se inicie sesión
+    
+    tweets_data = []
 
-    tweets = driver.find_elements(By.XPATH, '//article[@data-testid="tweet"]//div[2]//div[2]//div[1]')
+    tweet_count = 0
+    max_tweets = 2000
 
-    for tweet in tweets:
-        try:
-            content = tweet.text
-            tweets_data.append(content)
-            print(f"Contenido: {content}")
-            print("-" * 50)
-        except Exception as e:
-            print(f"Error al extraer información del tweet: {e}")
+    while tweet_count < max_tweets:
+        tweets = driver.find_elements(By.XPATH, '//article[@data-testid="tweet"]//div[2]//div[2]//div[1]')
+        
+        for tweet in tweets:
+            try:
+                content = tweet.text
+                if content not in tweets_data:  # Evitar duplicados
+                    tweets_data.append(content)
+                    tweet_count += 1
+                    print(f"Tweet {tweet_count}: {content}")
+                    print("-" * 50)
+                    if tweet_count >= max_tweets:
+                        break
+            except Exception as e:
+                print(f"Error al extraer información del tweet: {e}")
+        
+
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        time.sleep(2)  # Esperar un momento para que se carguen más tweets
 
 finally:
     driver.quit()
 
-
-with open('dataset.csv', mode='w', newline='', encoding='utf-8') as file:
+with open('tweets.csv', mode='w', newline='', encoding='utf-8') as file:
     writer = csv.writer(file)
     writer.writerow(["dataset"])
     for tweet in tweets_data:
