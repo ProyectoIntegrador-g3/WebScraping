@@ -1,0 +1,47 @@
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
+import time
+import csv
+
+from webdriver_manager.chrome import ChromeDriverManager
+
+
+chrome_options = Options()
+chrome_options.add_argument("--disable-extensions")
+chrome_options.add_argument("--disable-gpu")
+chrome_options.add_argument("--no-sandbox")
+chrome_options.add_argument("--headless")
+opts = Options()
+opts.add_argument("user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36")
+
+driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+driver.get('https://twitter.com/login')
+
+tweets_data = []
+
+try:
+    driver.get('https://twitter.com/login')
+    time.sleep(30)
+
+    tweets = driver.find_elements(By.XPATH, '//article[@data-testid="tweet"]//div[2]//div[2]//div[1]')
+
+    for tweet in tweets:
+        try:
+            content = tweet.text
+            tweets_data.append(content)
+            print(f"Contenido: {content}")
+            print("-" * 50)
+        except Exception as e:
+            print(f"Error al extraer información del tweet: {e}")
+
+finally:
+    driver.quit()
+
+
+with open('dataset.csv', mode='w', newline='', encoding='utf-8') as file:
+    writer = csv.writer(file)
+    writer.writerow(["dataset"])
+    for tweet in tweets_data:
+        writer.writerow([tweet])
